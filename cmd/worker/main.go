@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if cfg.KafkaBrokers != "" {
-		kafkaConsumer := consumer.NewKafkaConsumer(cfg.KafkaBrokers, store)
+		kafkaConsumer := consumer.NewKafkaConsumer(cfg, store)
 		go kafkaConsumer.Start(runCtx)
 	}
 

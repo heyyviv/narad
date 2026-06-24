@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/narad/narad/internal/config"
 	"github.com/narad/narad/internal/storage"
 	"github.com/segmentio/kafka-go"
 )
@@ -19,14 +20,20 @@ type KafkaConsumer struct {
 	group  string
 }
 
-func NewKafkaConsumer(brokersStr string, store *storage.Storage) *KafkaConsumer {
-	brokers := strings.Split(brokersStr, ",")
+func NewKafkaConsumer(cfg *config.Config, store *storage.Storage) *KafkaConsumer {
+	brokers := strings.Split(cfg.KafkaBrokers, ",")
 	for i, b := range brokers {
 		brokers[i] = strings.TrimSpace(b)
 	}
 
-	topic := "logiq-logs"
-	group := "logiq-workers-group"
+	topic := cfg.KafkaTopic
+	if topic == "" {
+		return nil
+	}
+	group := cfg.KafkaGroup
+	if group == "" {
+		return nil
+	}
 
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  brokers,
@@ -69,7 +76,7 @@ func (c *KafkaConsumer) Start(ctx context.Context) {
 			// Accumulate a batch of messages up to 100ms or 100 messages
 			messages := []kafka.Message{m}
 			batchCtx, batchCancel := context.WithTimeout(ctx, 100*time.Millisecond)
-			
+
 			for len(messages) < 100 {
 				nm, err := c.reader.FetchMessage(batchCtx)
 				if err != nil {

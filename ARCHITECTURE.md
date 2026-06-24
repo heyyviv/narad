@@ -18,6 +18,7 @@ Welcome to the **Narad** Log Intelligence Platform developer guide. Narad is a h
    - [Authentication & Transport Modes](#authentication--transport-modes)
    - [IDE Integration](#ide-integration)
 8. [Docker Compose & Environment Config](#8-docker-compose--environment-config)
+9. [Code Navigation & Reading Guide](#9-code-navigation--reading-guide)
 
 ---
 
@@ -249,3 +250,29 @@ docker-compose up -d --build
 - `logiq-server`: REST API listening on port `8080`
 - `logiq-worker`: High-throughput Redis Streams / Kafka queue daemon
 - `logiq-mcp`: SSE MCP Server listening on port `8090` (secured with API Key: `narad_mcp_api_key_secret`)
+
+---
+
+## 9. Code Navigation & Reading Guide
+
+If you are new to the codebase and want to read and understand every line, we recommend starting in this sequence:
+
+### 1. Configuration & Database Foundations
+- **[internal/config/config.go](file:///Users/vivekdas/Desktop/projects/narad/internal/config/config.go)**: Understand how configuration parameters are loaded from `config.yaml` with environment variable overrides.
+- **[internal/storage/db.go](file:///Users/vivekdas/Desktop/projects/narad/internal/storage/db.go)**: View database initializers, migration runners, and the connection `Pool()` accessor.
+
+### 2. Ingestion Pipelines & Daemons
+- **[internal/consumer/kafka.go](file:///Users/vivekdas/Desktop/projects/narad/internal/consumer/kafka.go)**: Review how the Kafka consumer reads in batches, processes logs, batch-inserts into TimescaleDB, and commits offsets.
+- **[internal/consumer/consumer.go](file:///Users/vivekdas/Desktop/projects/narad/internal/consumer/consumer.go)**: Compare with the Redis Streams consumer setup.
+- **[cmd/worker/main.go](file:///Users/vivekdas/Desktop/projects/narad/cmd/worker/main.go)**: See how the worker daemon starts both consumers concurrently in goroutines.
+
+### 3. MCP Server & Authentication Middleware
+- **[cmd/mcp/main.go](file:///Users/vivekdas/Desktop/projects/narad/cmd/mcp/main.go)**: Trace how the server flags and env variables set up stdio or SSE transport. Look at the `authMiddleware` to see how it validates headers and query tokens.
+
+### 4. Core Diagnostic Tools
+- **[internal/mcp/tools.go](file:///Users/vivekdas/Desktop/projects/narad/internal/mcp/tools.go)**: Deep-dive into each of the 5 tools:
+  1. `SearchLogs`: Dynamic query construction with time range bounds and dimension joins.
+  2. `TraceRequest`: Follow a specific trace ID across services with automatic database fallback.
+  3. `GetErrors`: Structural grouping of recent logs by replacing variables (UUIDs, IDs, digits) in Go via regular expressions.
+  4. `ExplainIncident`: Log query correlation within a temporal range around a target incident.
+  5. `TailService`: Retrieves tail logs sorted chronologically ascending for human-readable layout.

@@ -9,6 +9,7 @@ require (
 	github.com/mark3labs/mcp-go v0.55.0
 	github.com/redis/go-redis/v9 v9.20.1
 	github.com/segmentio/kafka-go v0.4.51
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

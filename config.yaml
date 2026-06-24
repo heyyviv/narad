@@ -1,0 +1,16 @@
+# Narad Configuration File
+
+# TimescaleDB connection URL
+database_url: "postgres://logiq:logiq@localhost:5432/logiq?sslmode=disable"
+
+# Redis Streams connection URL
+redis_url: "redis://localhost:6379"
+
+# HTTP REST Server Port
+port: "8080"
+
+# Kafka Broker list (comma separated)
+kafka_brokers: "localhost:9092"
+
+kafka_topic : "narad-logs"
+kafka_group : "narad-workers-group"

@@ -7,6 +7,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server-bin ./cmd/server
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/worker-bin ./cmd/worker
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/mcp-bin ./cmd/mcp
 
 FROM alpine:latest AS server
 WORKDIR /app
@@ -20,3 +21,9 @@ WORKDIR /app
 COPY --from=builder /app/worker-bin /app/worker-bin
 COPY --from=builder /app/migrations /app/migrations
 CMD ["/app/worker-bin"]
+
+FROM alpine:latest AS mcp
+WORKDIR /app
+COPY --from=builder /app/mcp-bin /app/mcp-bin
+EXPOSE 8090
+CMD ["/app/mcp-bin"]

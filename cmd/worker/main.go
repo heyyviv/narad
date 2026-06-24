@@ -30,15 +30,21 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	redisConsumer, err := consumer.NewRedisConsumer(cfg.RedisURL, store)
-	if err != nil {
-		log.Fatalf("Failed to initialize redis consumer: %v", err)
-	}
-
 	runCtx, runCancel := context.WithCancel(context.Background())
 	defer runCancel()
 
-	go redisConsumer.Start(runCtx)
+	if cfg.RedisURL != "" {
+		redisConsumer, err := consumer.NewRedisConsumer(cfg.RedisURL, store)
+		if err != nil {
+			log.Fatalf("Failed to initialize redis consumer: %v", err)
+		}
+		go redisConsumer.Start(runCtx)
+	}
+
+	if cfg.KafkaBrokers != "" {
+		kafkaConsumer := consumer.NewKafkaConsumer(cfg.KafkaBrokers, store)
+		go kafkaConsumer.Start(runCtx)
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

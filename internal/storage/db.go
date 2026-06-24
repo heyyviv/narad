@@ -57,3 +57,7 @@ func (s *Storage) RunMigrations(ctx context.Context, migrationsDir string) error
 func (s *Storage) Close() {
 	s.pool.Close()
 }
+
+func (s *Storage) Pool() *pgxpool.Pool {
+	return s.pool
+}
